@@ -22,7 +22,7 @@ def taxi_transformation_pipeline(date_str):
             """
     run_query(query, True)
     filename = "taxi_availability_{}.json".format(date_str.replace("-","_"))
-    with open("data/raw/taxi_availability_2024_12_31.json", "r") as file:
+    with open("data/raw/" + filename , "r") as file:
         taxi_availability_list = json.load(file)
     conn = psycopg.connect(dbname='taxi_availability', user='myuser', password='mypassword', host='localhost', port='5432')
     cur = conn.cursor()
