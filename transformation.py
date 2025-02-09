@@ -1,9 +1,19 @@
 import psycopg
 import json
 from shapely.geometry import shape
+import os
+
+POSTGRES_USER = os.getenv("POSTGRES_USER", "myuser")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "mypassword")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "taxi_availability")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")  # Change to 'etl-db' in Docker
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")  # Change to 5432 in Docker
+
+def db_connection():
+    return psycopg.connect(dbname= POSTGRES_DB , user=POSTGRES_USER, password=POSTGRES_PASSWORD, host=POSTGRES_HOST, port=POSTGRES_PORT)
 
 def run_query(query, fetch_results = False):
-    with psycopg.connect(dbname='taxi_availability', user='myuser', password='mypassword', host='localhost', port='5432') as conn:
+    with db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(query)
             if fetch_results:
@@ -24,7 +34,7 @@ def taxi_transformation_pipeline(date_str):
     filename = "taxi_availability_{}.json".format(date_str.replace("-","_"))
     with open("data/raw/" + filename , "r") as file:
         taxi_availability_list = json.load(file)
-    conn = psycopg.connect(dbname='taxi_availability', user='myuser', password='mypassword', host='localhost', port='5432')
+    conn = db_connection()
     cur = conn.cursor()
     insert_query = "INSERT INTO taxi_availability (timestamp, geom, taxi_count) VALUES (%s, ST_GeomFromText(%s, 4326), %s) \
                     ON CONFLICT (timestamp) DO NOTHING;"
