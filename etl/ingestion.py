@@ -33,6 +33,8 @@ def save_taxi_availability(date_str, data):
     with open(file_path, "w") as f:
         json.dump(data, f, indent = 2)
 
-def taxi_ingestion_pipeline(date_str):
+def taxi_ingestion_pipeline(**context):
+    logical_date = context["logical_date"]
+    date_str = logical_date.strftime("%Y-%m-%d")
     data = taxi_availability_date(date_str)
     save_taxi_availability(date_str, data)

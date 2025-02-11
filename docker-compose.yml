@@ -27,7 +27,7 @@ services:
       - airflow_postgres_data:/var/lib/postgresql/data
 
   airflow:
-    image: apache/airflow:latest
+    build: .
     container_name: airflow
     restart: always
     depends_on:
@@ -46,10 +46,12 @@ services:
       - "8080:8080"
     volumes:
       - ./dags:/opt/airflow/dags
+      - ./etl:/opt/airflow/etl
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
+      - ./data:/opt/airflow/data
     command: >
-      bash -c "airflow db init && airflow webserver --port 8080 & airflow scheduler"
+      bash -c "poetry run airflow db init && poetry run airflow webserver --port 8080 & poetry run airflow scheduler"
 
 volumes:
   etl_postgres_data:

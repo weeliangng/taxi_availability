@@ -2,6 +2,7 @@ import psycopg
 import json
 from shapely.geometry import shape
 import os
+from datetime import timedelta
 
 POSTGRES_USER = os.getenv("POSTGRES_USER", "myuser")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "mypassword")
@@ -23,7 +24,9 @@ def run_query(query, fetch_results = False):
                 except:
                     print("Query does not produce any results")
 
-def taxi_transformation_pipeline(date_str):
+def taxi_transformation_pipeline(**context):
+    logical_date = context["logical_date"]
+    date_str = logical_date.strftime("%Y-%m-%d")
     query = """
     CREATE TABLE IF NOT EXISTS taxi_availability (
     timestamp timestamptz PRIMARY KEY,
@@ -32,7 +35,8 @@ def taxi_transformation_pipeline(date_str):
             """
     run_query(query, True)
     filename = "taxi_availability_{}.json".format(date_str.replace("-","_"))
-    with open("data/raw/" + filename , "r") as file:
+    filepath = "data/raw/" + filename
+    with open( filepath , "r") as file:
         taxi_availability_list = json.load(file)
     conn = db_connection()
     cur = conn.cursor()
@@ -46,3 +50,4 @@ def taxi_transformation_pipeline(date_str):
     conn.commit()
     cur.close()
     conn.close()
+    return filepath
